@@ -30,6 +30,22 @@ library LibPoseidon2Yul {
         return poseidon2_core(x, y, z, 3 << 64);
     }
 
+    /// @notice Apply the Poseidon2 permutation to a full 4-word state.
+    /// @dev Returns the updated state (state0..state3).
+    function permute(uint256 s0, uint256 s1, uint256 s2, uint256 s3)
+        internal
+        pure
+        returns (uint256 r0, uint256 r1, uint256 r2, uint256 r3)
+    {
+        assembly {
+            ${poseidon2_core("s0", "s1", "s2", "s3")}
+            r0 := state0
+            r1 := state1
+            r2 := state2
+            r3 := state3
+        }
+    }
+
     function poseidon2_core(uint256 s0, uint256 s1, uint256 s2, uint256 s3) internal pure returns (uint256 result) {
         assembly {
             ${poseidon2_core("s0", "s1", "s2", "s3")}

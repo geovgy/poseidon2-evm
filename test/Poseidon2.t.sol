@@ -17,6 +17,68 @@ contract Poseidon2Test is Test {
     IPoseidon2 private poseidon2Yul;
     IPoseidon2 private poseidon2Huff;
 
+    function _poseidon2Hash_ts(uint256[] memory inputs) internal returns (uint256) {
+        // Prepare input: convert uint256[] to string array for FFI
+        string[] memory cmd = new string[](2 + inputs.length);
+        cmd[0] = "bun";
+        cmd[1] = "poseidon2-hash.ts";
+        for (uint256 i; i < inputs.length; i++) {
+            cmd[2 + i] = vm.toString(inputs[i]);
+        }
+
+        bytes memory out = vm.ffi(cmd);
+        // Output is a hex string; parse to uint256
+        return uint256(bytes32(out));
+    }
+
+    function _hash1(address target, uint256 a) private pure returns (uint256 out) {
+        // (bool ok, bytes memory ret) =
+        //     target.staticcall(abi.encodeWithSignature("hash_1(uint256)", a));
+        // require(ok, "call failed");
+        // out = abi.decode(ret, (uint256));
+        return IPoseidon2(target).hash_1(a);
+    }
+
+    function _hash2(address target, uint256 a, uint256 b) private pure returns (uint256 out) {
+        // (bool ok, bytes memory ret) =
+        //     target.staticcall(abi.encodeWithSignature("hash_2(uint256,uint256)", a, b));
+        // require(ok, "call failed");
+        // out = abi.decode(ret, (uint256));
+        return IPoseidon2(target).hash_2(a, b);
+    }
+
+    function _hash3(address target, uint256 a, uint256 b, uint256 c) private pure returns (uint256 out) {
+        // (bool ok, bytes memory ret) =
+        //     target.staticcall(abi.encodeWithSignature("hash_3(uint256,uint256,uint256)", a, b, c));
+        // require(ok, "call failed");
+        // out = abi.decode(ret, (uint256));
+        return IPoseidon2(target).hash_3(a, b, c);
+    }
+
+    function _hash4(address target, uint256 a, uint256 b, uint256 c, uint256 d) private pure returns (uint256 out) {
+        // (bool ok, bytes memory ret) =
+        //     target.staticcall(abi.encodeWithSignature("hash_4(uint256,uint256,uint256,uint256)", a, b, c, d));
+        // require(ok, "call failed");
+        // out = abi.decode(ret, (uint256));
+        return IPoseidon2(target).hash_4(a, b, c, d);
+    }
+
+    function _hash5(address target, uint256 a, uint256 b, uint256 c, uint256 d, uint256 e) private pure returns (uint256 out) {
+        // (bool ok, bytes memory ret) =
+        //     target.staticcall(abi.encodeWithSignature("hash_5(uint256,uint256,uint256,uint256,uint256)", a, b, c, d, e));
+        // require(ok, "call failed");
+        // out = abi.decode(ret, (uint256));
+        return IPoseidon2(target).hash_5(a, b, c, d, e);
+    }
+
+    function _hashVarLen(address target, uint256[] memory inputs) private pure returns (uint256 out) {
+        // (bool ok, bytes memory ret) =
+        //     target.staticcall(abi.encodeWithSignature("hash(uint256[])", inputs));
+        // require(ok, "call failed");
+        // out = abi.decode(ret, (uint256));
+        return IPoseidon2(target).hash(inputs);
+    }
+
     function setUp() public {
         poseidon2 = new Poseidon2_BN254();
         poseidon2Yul = IPoseidon2(address(new Poseidon2Yul_BN254()));
@@ -220,14 +282,25 @@ contract Poseidon2Test is Test {
     function _testVarLen1() internal view {
         Field.Type[] memory input = new Field.Type[](1);
         input[0] = uint256(0x187b4757bbf034ce7daaf3fdf2b735544d88da2033dea124500ff79484bce862).toField();
-        assertEq(poseidon2.hash(input).toUint256(), 0x0961b57effa18e2dcbf5671e9400d10bc9214fbf39b149cfd8949731f61d2bfa);
+        assertEq(poseidon2.hash(input).toUint256(), 0x0961b57effa18e2dcbf5671e9400d10bc9214fbf39b149cfd8949731f61d2bfa, "testVarLen1 - solidity incorrect");
+
+        uint256[] memory inputs = new uint256[](1);
+        inputs[0] = uint256(0x187b4757bbf034ce7daaf3fdf2b735544d88da2033dea124500ff79484bce862);
+        assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x0961b57effa18e2dcbf5671e9400d10bc9214fbf39b149cfd8949731f61d2bfa, "testVarLen1 - yul incorrect");
+        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x0961b57effa18e2dcbf5671e9400d10bc9214fbf39b149cfd8949731f61d2bfa, "testVarLen1 - huff incorrect");
     }
 
     function _testVarLen2() internal view {
         Field.Type[] memory input = new Field.Type[](2);
         input[0] = uint256(0x0143bc5d854ca7c33c27ad96dfe2c2443dd272a30a99f90f8f892ac7bbb4370e).toField();
         input[1] = uint256(0x2eb3d5587861dac05dfed4b7099dbdef57fc644504f297afb890c2df0c7212e7).toField();
-        assertEq(poseidon2.hash(input).toUint256(), 0x0d34db78174c82c6a7d60cbf21f0fce80ef4ddc67e65881d6daca4e5ad8cd52d);
+        assertEq(poseidon2.hash(input).toUint256(), 0x0d34db78174c82c6a7d60cbf21f0fce80ef4ddc67e65881d6daca4e5ad8cd52d, "testVarLen2 - solidity incorrect");
+
+        uint256[] memory inputs = new uint256[](2);
+        inputs[0] = uint256(0x0143bc5d854ca7c33c27ad96dfe2c2443dd272a30a99f90f8f892ac7bbb4370e);
+        inputs[1] = uint256(0x2eb3d5587861dac05dfed4b7099dbdef57fc644504f297afb890c2df0c7212e7);
+        assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x0d34db78174c82c6a7d60cbf21f0fce80ef4ddc67e65881d6daca4e5ad8cd52d, "testVarLen2 - yul incorrect");
+        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x0d34db78174c82c6a7d60cbf21f0fce80ef4ddc67e65881d6daca4e5ad8cd52d, "testVarLen2 - huff incorrect");
     }
 
     function _testVarLen3() internal view {
@@ -235,7 +308,14 @@ contract Poseidon2Test is Test {
         input[0] = uint256(0x030341179f0ef88190aa557f9b20bb4aa31f805f214e72741b5d3b3a2bccf5b6).toField();
         input[1] = uint256(0x00b88879f5765438ef691e40ad4a6223d421317c342888de56c7f8b995e27688).toField();
         input[2] = uint256(0x0727b4522492cfbe1b5be97a17ed5672487fd1dc2ad3d09bd033c55d1ba40c70).toField();
-        assertEq(poseidon2.hash(input).toUint256(), 0x22024dabdd6a9dfb47eb26f9569fd048968a0db30c60f3f38d8b61274458437e);
+        assertEq(poseidon2.hash(input).toUint256(), 0x22024dabdd6a9dfb47eb26f9569fd048968a0db30c60f3f38d8b61274458437e, "testVarLen3 - solidity incorrect");
+
+        uint256[] memory inputs = new uint256[](3);
+        inputs[0] = uint256(0x030341179f0ef88190aa557f9b20bb4aa31f805f214e72741b5d3b3a2bccf5b6);
+        inputs[1] = uint256(0x00b88879f5765438ef691e40ad4a6223d421317c342888de56c7f8b995e27688);
+        inputs[2] = uint256(0x0727b4522492cfbe1b5be97a17ed5672487fd1dc2ad3d09bd033c55d1ba40c70);
+        assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x22024dabdd6a9dfb47eb26f9569fd048968a0db30c60f3f38d8b61274458437e, "testVarLen3 - yul incorrect");
+        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x22024dabdd6a9dfb47eb26f9569fd048968a0db30c60f3f38d8b61274458437e, "testVarLen3 - huff incorrect");
     }
 
     function _testVarLen4() internal view {
@@ -244,7 +324,15 @@ contract Poseidon2Test is Test {
         input[1] = uint256(0x01c81114d1f4eb857dfe3a8479760fd0c8e33d9ed6f42f8ee3eef974b85ef937).toField();
         input[2] = uint256(0x03a2238b91de1214a385af17ade25f2e71b6364b4d54dfb6e7ec96fd12be5a65).toField();
         input[3] = uint256(0x24cc93df58f07c156dd648edac3318420325db58ff1cccbc3d9a3cdb529f8469).toField();
-        assertEq(poseidon2.hash(input).toUint256(), 0x24f3009e0089df4ae82f5dcde988fd9738ede4a6f51788c11c69b3e43a01b42b);
+        assertEq(poseidon2.hash(input).toUint256(), 0x24f3009e0089df4ae82f5dcde988fd9738ede4a6f51788c11c69b3e43a01b42b, "testVarLen4 - solidity incorrect");
+
+        uint256[] memory inputs = new uint256[](4);
+        inputs[0] = uint256(0x0891e9efa2b82224dccfee5171614168f84c4c99443c7e6e2753433a978f5955);
+        inputs[1] = uint256(0x01c81114d1f4eb857dfe3a8479760fd0c8e33d9ed6f42f8ee3eef974b85ef937);
+        inputs[2] = uint256(0x03a2238b91de1214a385af17ade25f2e71b6364b4d54dfb6e7ec96fd12be5a65);
+        inputs[3] = uint256(0x24cc93df58f07c156dd648edac3318420325db58ff1cccbc3d9a3cdb529f8469);
+        assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x24f3009e0089df4ae82f5dcde988fd9738ede4a6f51788c11c69b3e43a01b42b, "testVarLen4 - yul incorrect");
+        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x24f3009e0089df4ae82f5dcde988fd9738ede4a6f51788c11c69b3e43a01b42b, "testVarLen4 - huff incorrect");
     }
 
     function _testVarLen5() internal view {
@@ -254,7 +342,16 @@ contract Poseidon2Test is Test {
         input[2] = uint256(0x04c4fb583a2d9d9ceb1927de6d251e09fa01950313d6640863de039a37bd376a).toField();
         input[3] = uint256(0x18f1ec5070a8f50dbb71bf03d130fccc420161b8ee5e6c6ffdb676c7a7d33189).toField();
         input[4] = uint256(0x11e539f3dd6bb505dde162c84f22eee58f2a95a62027f230442b26c8dc3f96fc).toField();
-        assertEq(poseidon2.hash(input).toUint256(), 0x1cbfcd7746c46fcfa7ae67d32e0cafb6ac348ebcb6f5a5e8c579ec6daa96362b);
+        assertEq(poseidon2.hash(input).toUint256(), 0x1cbfcd7746c46fcfa7ae67d32e0cafb6ac348ebcb6f5a5e8c579ec6daa96362b, "testVarLen5 - solidity incorrect");
+
+        uint256[] memory inputs = new uint256[](5);
+        inputs[0] = uint256(0x283318d1c946e5a788c59267712f20383a610189d89d39c161d53e2ae22b9bb5);
+        inputs[1] = uint256(0x2f51c6b6cc030846b73d449e6f8f9cbe609038bc4ccdb4268dc486e1a0d9694f);
+        inputs[2] = uint256(0x04c4fb583a2d9d9ceb1927de6d251e09fa01950313d6640863de039a37bd376a);
+        inputs[3] = uint256(0x18f1ec5070a8f50dbb71bf03d130fccc420161b8ee5e6c6ffdb676c7a7d33189);
+        inputs[4] = uint256(0x11e539f3dd6bb505dde162c84f22eee58f2a95a62027f230442b26c8dc3f96fc);
+        assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x1cbfcd7746c46fcfa7ae67d32e0cafb6ac348ebcb6f5a5e8c579ec6daa96362b, "testVarLen5 - yul incorrect");
+        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x1cbfcd7746c46fcfa7ae67d32e0cafb6ac348ebcb6f5a5e8c579ec6daa96362b, "testVarLen5 - huff incorrect");
     }
 
     function _testVarLen6() internal view {
@@ -265,7 +362,17 @@ contract Poseidon2Test is Test {
         input[3] = uint256(0x12e80d94354e709fdc78c0d646a3763dd4dbeada2c7b27553f23cc6c32823e82).toField();
         input[4] = uint256(0x065929de60742283ec95df48428ca27e72bc8d4d114f172aff17c237b208d056).toField();
         input[5] = uint256(0x23ceb931dc1b76a8915466e0faedf56a5fe2169e650248663d9fecb75e5fa156).toField();
-        assertEq(poseidon2.hash(input).toUint256(), 0x145023e2318ab81ba31e50cc62713441762c5132d5e6acbe6e88fd9f816473f1);
+        assertEq(poseidon2.hash(input).toUint256(), 0x145023e2318ab81ba31e50cc62713441762c5132d5e6acbe6e88fd9f816473f1, "testVarLen6 - solidity incorrect");
+
+        uint256[] memory inputs = new uint256[](6);
+        inputs[0] = uint256(0x01c93b681eb77d4d6af59d8f753d49d3a8839208f44471e68d67e52758cc923d);
+        inputs[1] = uint256(0x2a8f0abbca50b48935358452633b55e694d4d03357d7d5bdfddf08a117ada3b9);
+        inputs[2] = uint256(0x0c1a9c0b4e4a5315f111c078e411360bf54af39bfe2ffa2ce094aa6d57aa3343);
+        inputs[3] = uint256(0x12e80d94354e709fdc78c0d646a3763dd4dbeada2c7b27553f23cc6c32823e82);
+        inputs[4] = uint256(0x065929de60742283ec95df48428ca27e72bc8d4d114f172aff17c237b208d056);
+        inputs[5] = uint256(0x23ceb931dc1b76a8915466e0faedf56a5fe2169e650248663d9fecb75e5fa156);
+        assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x145023e2318ab81ba31e50cc62713441762c5132d5e6acbe6e88fd9f816473f1, "testVarLen6 - yul incorrect");
+        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x145023e2318ab81ba31e50cc62713441762c5132d5e6acbe6e88fd9f816473f1, "testVarLen6 - huff incorrect");
     }
 
     function _testVarLen7() internal view {
@@ -277,7 +384,18 @@ contract Poseidon2Test is Test {
         input[4] = uint256(0x28a750154b9935407757f85a9f2596ddf082ce5f74256fd8c1200fc04a5f6548).toField();
         input[5] = uint256(0x0044d022f6220947659be7ed057a37adebc8468fce1bc365b76b7664595dd31d).toField();
         input[6] = uint256(0x22a2c8eff174ea66dee3d53dda9d45d37b90b3c2d6820f233fb868f4b41fc83c).toField();
-        assertEq(poseidon2.hash(input).toUint256(), 0x16f71f10bf199529eadbbf20b0aefd1aae7afdd756c385da64d4e74474b9623c);
+        assertEq(poseidon2.hash(input).toUint256(), 0x16f71f10bf199529eadbbf20b0aefd1aae7afdd756c385da64d4e74474b9623c, "testVarLen7 - solidity incorrect");
+
+        uint256[] memory inputs = new uint256[](7);
+        inputs[0] = uint256(0x213bba8cab8dac55a2a86deaabcd4303ad2b0762fd1d11950d54bc54aa056623);
+        inputs[1] = uint256(0x00872f0dd93bd2868b85a7822d07d31d18ccf92228c38167de7804319a019fa3);
+        inputs[2] = uint256(0x198ea672f81fd916f47ae9a5f24d6740c5e5e5c8a389166ce02d85731e71d8af);
+        inputs[3] = uint256(0x0f362421b36759e1364d4ba7e5894381f56009843afe307aee6cb28a58ab4702);
+        inputs[4] = uint256(0x28a750154b9935407757f85a9f2596ddf082ce5f74256fd8c1200fc04a5f6548);
+        inputs[5] = uint256(0x0044d022f6220947659be7ed057a37adebc8468fce1bc365b76b7664595dd31d);
+        inputs[6] = uint256(0x22a2c8eff174ea66dee3d53dda9d45d37b90b3c2d6820f233fb868f4b41fc83c);
+        assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x16f71f10bf199529eadbbf20b0aefd1aae7afdd756c385da64d4e74474b9623c, "testVarLen7 - yul incorrect");
+        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x16f71f10bf199529eadbbf20b0aefd1aae7afdd756c385da64d4e74474b9623c, "testVarLen7 - huff incorrect");
     }
 
     function _testVarLen8() internal view {
@@ -290,7 +408,19 @@ contract Poseidon2Test is Test {
         input[5] = uint256(0x224b14a1040873fd8f154e6d7b65db283ed2c422e5d14aa06ce3ed9d3cc69743).toField();
         input[6] = uint256(0x1bda12ff5af5e9a1b1f7dd8febb87e253ca0a4e43b16cd3b79818007f6f8d1bb).toField();
         input[7] = uint256(0x24a873345d569136d18164069fc60749aa57f8930ec8a52adde1f01967afbb7c).toField();
-        assertEq(poseidon2.hash(input).toUint256(), 0x1b63be96f9b6bdeb09f103968aabac69252137ec863177a93a516e8120d662c4);
+        assertEq(poseidon2.hash(input).toUint256(), 0x1b63be96f9b6bdeb09f103968aabac69252137ec863177a93a516e8120d662c4, "testVarLen8 - solidity incorrect");
+
+        uint256[] memory inputs = new uint256[](8);
+        inputs[0] = uint256(0x1d40c16d71a56182ae856c7f69412c62b29f1afd21376c9fe615c6bcd013723d);
+        inputs[1] = uint256(0x03281f89b9ac18f3a8199b7116453790560d43f2d1b70debb10379b6702b5e31);
+        inputs[2] = uint256(0x2391e7ffcf81c4fbe0bd44cd89ad173d6d1d9bf7c4325ca4b195f863b9fb9da9);
+        inputs[3] = uint256(0x0ecbc17f1a32f3163bc8bc704711aebedb0ad69d29f224fc8fb0851e7fc9c8c4);
+        inputs[4] = uint256(0x1ea5f8133edf27df211a66c7ba4304b9131cbde0b1832c2a182d9869a77c491b);
+        inputs[5] = uint256(0x0224b14a1040873fd8f154e6d7b65db283ed2c422e5d14aa06ce3ed9d3cc69743);
+        inputs[6] = uint256(0x1bda12ff5af5e9a1b1f7dd8febb87e253ca0a4e43b16cd3b79818007f6f8d1bb);
+        inputs[7] = uint256(0x24a873345d569136d18164069fc60749aa57f8930ec8a52adde1f01967afbb7c);
+        assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x1b63be96f9b6bdeb09f103968aabac69252137ec863177a93a516e8120d662c4, "testVarLen8 - yul incorrect");
+        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x1b63be96f9b6bdeb09f103968aabac69252137ec863177a93a516e8120d662c4, "testVarLen8 - huff incorrect");
     }
 
     function _testVarLen9() internal view {
@@ -304,7 +434,20 @@ contract Poseidon2Test is Test {
         input[6] = uint256(0x0be48f952b90e3dfad74a2b04ade94e7b02b677702bf32d94389ff1669fa9911).toField();
         input[7] = uint256(0x18de646adb3e2f5e2ac7cd21dbfbf9dbe91d97b9cfb5afc2e7735c6f292d4ffe).toField();
         input[8] = uint256(0x174bfedb2323aecff5c4952313b81d9b3fcda8ff71a4b762bd16bb9779afb731).toField();
-        assertEq(poseidon2.hash(input).toUint256(), 0x2a33a41e1e3cca17e7b7a000ac5cfcb7f7783023c0563acb39ae5bfe2e0d3c8e);
+        assertEq(poseidon2.hash(input).toUint256(), 0x2a33a41e1e3cca17e7b7a000ac5cfcb7f7783023c0563acb39ae5bfe2e0d3c8e, "testVarLen9 - solidity incorrect");
+
+        uint256[] memory inputs = new uint256[](9);
+        inputs[0] = uint256(0x04e673b5f868ff850c5db58bb9f32b60c564b09b57261fdcb45c32013379ec21);
+        inputs[1] = uint256(0x0ff51c3255f4bd470e3263e5295b757d091fc015b1348b0b30b8fcfa5cc9b818);
+        inputs[2] = uint256(0x08f7a1ec99bf817777942e1132ccd237980a01f1d3d9914bbaf4d8e74320a1ee);
+        inputs[3] = uint256(0x2f6deadbdaa28308134784b3615596492085de03f479f59e79044e5860c76b27);
+        inputs[4] = uint256(0x141a2f00b0cbc606fe887c806d46659a6dac8a0d15829e36f06e43eec13eb324);
+        inputs[5] = uint256(0x1a0eb99c6f3c44026e61a5e6e36c806a25db6cf674c5f0075210dfdd00122264);
+        inputs[6] = uint256(0x0be48f952b90e3dfad74a2b04ade94e7b02b677702bf32d94389ff1669fa9911);
+        inputs[7] = uint256(0x18de646adb3e2f5e2ac7cd21dbfbf9dbe91d97b9cfb5afc2e7735c6f292d4ffe);
+        inputs[8] = uint256(0x174bfedb2323aecff5c4952313b81d9b3fcda8ff71a4b762bd16bb9779afb731);
+        assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x2a33a41e1e3cca17e7b7a000ac5cfcb7f7783023c0563acb39ae5bfe2e0d3c8e, "testVarLen9 - yul incorrect");
+        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x2a33a41e1e3cca17e7b7a000ac5cfcb7f7783023c0563acb39ae5bfe2e0d3c8e, "testVarLen9 - huff incorrect");
     }
 
     function _testVarLen10() internal view {
@@ -319,7 +462,21 @@ contract Poseidon2Test is Test {
         input[7] = uint256(0x0d51fcc8cdc21676e2d0d44d2caebcbedbd0c7f3149e7a2cb24f0f923c718f50).toField();
         input[8] = uint256(0x23cf8f1eda161dc7114e4774216a96a51430a4ed00bb94a9c22ffaf8158d9331).toField();
         input[9] = uint256(0x2060c8e16eaa344a1eb20bbc4179ad36c6c3d503716f329ce268677ecb76172f).toField();
-        assertEq(poseidon2.hash(input).toUint256(), 0x1eab26c4915afff7148c904edac0220dc6b86dca67ee342db5705027c4e489f1);
+        assertEq(poseidon2.hash(input).toUint256(), 0x1eab26c4915afff7148c904edac0220dc6b86dca67ee342db5705027c4e489f1, "testVarLen10 - solidity incorrect");
+
+        uint256[] memory inputs = new uint256[](10);
+        inputs[0] = uint256(0x041035d2043ca613be600dc3643dff43a343548bfeb85f19ab2ff31dfec42fd1);
+        inputs[1] = uint256(0x0233cd5d2fff9f11b3675f38a7fd7f04efbfe9a95f114824c2e9c98e97a52d3e);
+        inputs[2] = uint256(0x2251141b94a8f419455457672f188b942079916217c2e1eefd7eceab022e8ba1);
+        inputs[3] = uint256(0x08d2cfe2bd8e054aa3488c2d8a6f7628503da3f4d450e30d4fea46a8700d4a26);
+        inputs[4] = uint256(0x1eb978a79a501b8df8c6312f3474e1f41d439492fdfed4240cbfef6b0a7b47a2);
+        inputs[5] = uint256(0x05e385c9b9093003379e7111b3d83846694b15a3072355bc1a6df3eeff6e95f4);
+        inputs[6] = uint256(0x0d91626c7f7e0ff655a973452f3eae713893f57ce2e078978e00ef0ffab48f67);
+        inputs[7] = uint256(0x0d51fcc8cdc21676e2d0d44d2caebcbedbd0c7f3149e7a2cb24f0f923c718f50);
+        inputs[8] = uint256(0x23cf8f1eda161dc7114e4774216a96a51430a4ed00bb94a9c22ffaf8158d9331);
+        inputs[9] = uint256(0x2060c8e16eaa344a1eb20bbc4179ad36c6c3d503716f329ce268677ecb76172f);
+        assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x1eab26c4915afff7148c904edac0220dc6b86dca67ee342db5705027c4e489f1, "testVarLen10 - yul incorrect");
+        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x1eab26c4915afff7148c904edac0220dc6b86dca67ee342db5705027c4e489f1, "testVarLen10 - huff incorrect");
     }
 
     // ============================================================
@@ -378,5 +535,70 @@ contract Poseidon2Test is Test {
         assertEq(solidityResult, huffResult, "Solidity != Huff");
         assertEq(solidityResult, libResult, "Solidity != Lib");
         assertEq(solidityResult, libHuffResult, "Solidity != LibHuff");
+    }
+
+    function test_match_ts_implementation() public {
+        uint256 a = 1897234561897456178945624937856238947562893756;
+        uint256 b = 189723456189745617894568923478562389046728347;
+        uint256 c = 1897234561897456178945623894756234895718237956;
+        uint256 d = 18972345618974561789456234522345;
+        uint256 e = 18972345618974561789456234522345;
+
+        uint256[] memory inputs = new uint256[](5);
+        inputs[0] = a;
+        inputs[1] = b;
+        inputs[2] = c;
+        inputs[3] = d;
+        inputs[4] = e;
+
+        uint256 yulResult = _hash5(address(poseidon2Yul), a, b, c, d, e);
+        uint256 huffResult = _hash5(address(poseidon2Huff), a, b, c, d, e);
+        uint256 tsResult = _poseidon2Hash_ts(inputs);
+
+        assertEq(yulResult, tsResult, "Yul != TS: 5 inputs");
+        assertEq(huffResult, tsResult, "Huff != TS: 5 inputs");
+
+        inputs = new uint256[](4);
+        inputs[0] = a;
+        inputs[1] = b;
+        inputs[2] = c;
+        inputs[3] = d;
+
+        yulResult = _hash4(address(poseidon2Yul), a, b, c, d);
+        huffResult = _hash4(address(poseidon2Huff), a, b, c, d);
+        tsResult = _poseidon2Hash_ts(inputs);
+
+        assertEq(yulResult, tsResult, "Yul != TS: 4 inputs");
+        assertEq(huffResult, tsResult, "Huff != TS: 4 inputs");
+
+        inputs = new uint256[](3);
+        inputs[0] = a;
+        inputs[1] = b;
+        inputs[2] = c;
+        yulResult = _hash3(address(poseidon2Yul), a, b, c);
+        huffResult = _hash3(address(poseidon2Huff), a, b, c);
+        tsResult = _poseidon2Hash_ts(inputs);
+
+        assertEq(yulResult, tsResult, "Yul != TS: 3 inputs");
+        assertEq(huffResult, tsResult, "Huff != TS: 3 inputs");
+
+        inputs = new uint256[](2);
+        inputs[0] = a;
+        inputs[1] = b;
+        yulResult = _hash2(address(poseidon2Yul), a, b);
+        huffResult = _hash2(address(poseidon2Huff), a, b);
+        tsResult = _poseidon2Hash_ts(inputs);
+
+        assertEq(yulResult, tsResult, "Yul != TS: 2 inputs");
+        assertEq(huffResult, tsResult, "Huff != TS: 2 inputs");
+
+        inputs = new uint256[](1);
+        inputs[0] = a;
+        yulResult = _hash1(address(poseidon2Yul), a);
+        huffResult = _hash1(address(poseidon2Huff), a);
+        tsResult = _poseidon2Hash_ts(inputs);
+
+        assertEq(yulResult, tsResult, "Yul != TS: 1 input");
+        assertEq(huffResult, tsResult, "Huff != TS: 1 input");
     }
 }

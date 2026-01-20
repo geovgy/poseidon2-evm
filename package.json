@@ -28,5 +28,10 @@
     "out/Poseidon2.sol/Poseidon2_BN254.json",
     "out/Poseidon2Yul.sol/Poseidon2Yul_BN254.json",
     "out/LibPoseidon2Yul.sol/LibPoseidon2Yul.json"
-  ]
+  ],
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "@zkpassport/poseidon2": "^0.6.2",
+    "viem": "^2.44.4"
+  }
 }

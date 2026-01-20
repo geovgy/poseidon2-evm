@@ -3,6 +3,7 @@ import { round_constant, internal_matrix_diagonal } from "./constants";
 import { writeFileSync } from "fs";
 
 writeFileSync("src/bn254/huff/Permutation.huff", huff_generate());
+writeFileSync("src/bn254/huff/Poseidon2.huff", huff_generate_main());
 
 function huff_generate() {
   let t = 4;
@@ -102,4 +103,183 @@ function huff_generate() {
   })()}
 }`;
   }
+}
+
+function huff_generate_main() {
+  // keep in sync with src/bn254/huff/Poseidon2.huff
+  return `#include "./Permutation.huff"
+
+// Function selectors
+#define constant SELECTOR_PERMUTE = 0xda5fb280
+
+// Memory layout
+// - 0x00..0x84: call/return buffer for self-permute staticcall
+// - 0xa0: state0
+// - 0xc0: state1
+// - 0xe0: state2
+// - 0x100: state3
+// - 0x120: current calldata offset (packed args)
+// - 0x140: remaining arg count
+// - 0x160: original arg count
+
+#define macro MAIN() = {
+    // selector = calldataload(0) >> 224
+    0x00 calldataload
+    0xe0 shr
+
+    dup1 [SELECTOR_PERMUTE] eq do_permute jumpi
+
+    // default: packed args after selector
+    pop
+    HASH_PACKED()
+
+    do_permute:
+    pop
+    PERMUTE_ENTRY()
+}
+
+#define macro PERMUTE_ENTRY() = takes (0) returns (0) {
+    // Permute entrypoint: interpret args as full sponge state and return 4 words.
+    SETUP()
+    // push s3,s2,s1,s0 so stack is [s0,s1,s2,s3,PRIME]
+    0x64 calldataload
+    0x44 calldataload
+    0x24 calldataload
+    0x04 calldataload
+    POSEIDON2_PERMUTATION()
+    RETURN_FOUR()
+}
+
+#define macro PERMUTE_SELF() = takes (0) returns (0) {
+    // calldata: selector + 4 args at 0x00
+    [SELECTOR_PERMUTE] 0xe0 shl 0x00 mstore
+    0xa0 mload 0x04 mstore
+    0xc0 mload 0x24 mstore
+    0xe0 mload 0x44 mstore
+    0x100 mload 0x64 mstore
+
+    // staticcall(gas(), address(), in=0x00, insz=0x84, out=0x00, outsz=0x80)
+    0x80 0x00 0x84 0x00 address gas staticcall
+    iszero permute_fail jumpi
+
+    // load returned state back into memory
+    0x00 mload 0xa0 mstore
+    0x20 mload 0xc0 mstore
+    0x40 mload 0xe0 mstore
+    0x60 mload 0x100 mstore
+    end_permute_self jump
+
+    permute_fail:
+    0x00 0x00 revert
+
+    end_permute_self:
+}
+
+#define macro HASH_PACKED() = takes (0) returns (0) {
+    // Sponge hash for packed calldata args (after selector), RATE=3, capacity=1.
+    // n = (calldatasize - 4) / 32
+    0x04 calldatasize sub
+    0x05 shr
+    dup1 0x160 mstore // original n
+    dup1 0x140 mstore // remaining
+
+    // iv = n << 64
+    0x40 shl
+    0x100 mstore
+
+    // state0..2 = 0
+    0x00 0xa0 mstore
+    0x00 0xc0 mstore
+    0x00 0xe0 mstore
+
+    // offset = 0x04
+    0x04 0x120 mstore
+
+    loop_full:
+    0x140 mload
+    0x03 dup2 lt
+    end_full jumpi
+    pop
+
+    // off = mload(0x120)
+    0x120 mload
+
+    // state0 += calldata[off]
+    dup1 calldataload
+    [PRIME]
+    0xa0 mload
+    swap1 swap2 swap1 addmod
+    0xa0 mstore
+
+    // state1 += calldata[off+0x20]
+    dup1 0x20 add calldataload
+    [PRIME]
+    0xc0 mload
+    swap1 swap2 swap1 addmod
+    0xc0 mstore
+
+    // state2 += calldata[off+0x40]
+    0x40 add calldataload
+    [PRIME]
+    0xe0 mload
+    swap1 swap2 swap1 addmod
+    0xe0 mstore
+
+    // offset += 0x60
+    0x120 mload 0x60 add 0x120 mstore
+    // remaining -= 3
+    0x140 mload 0x03 swap1 sub 0x140 mstore
+
+    PERMUTE_SELF()
+    loop_full jump
+
+    end_full:
+    pop
+
+    // rem = mload(0x140)
+    0x140 mload
+    dup1 iszero
+    rem_is_zero jumpi
+    pop
+
+    // remainder (1 or 2)
+    0x120 mload
+
+    // state0 += calldata[off]
+    dup1 calldataload
+    [PRIME]
+    0xa0 mload
+    swap1 swap2 swap1 addmod
+    0xa0 mstore
+
+    // if rem == 1, skip second
+    0x140 mload 0x01 eq
+    rem_done jumpi
+
+    // state1 += calldata[off+0x20]
+    0x20 add calldataload
+    [PRIME]
+    0xc0 mload
+    swap1 swap2 swap1 addmod
+    0xc0 mstore
+
+    rem_done:
+    PERMUTE_SELF()
+    finish jump
+
+    rem_is_zero:
+    pop
+    // if original n == 0, still permute once (hash of empty input)
+    0x160 mload
+    no_final_permute jumpi
+    PERMUTE_SELF()
+
+    no_final_permute:
+    jumpdest
+
+    finish:
+    0xa0 mload
+    RETURN_ONE()
+}
+`;
 }
