@@ -287,7 +287,7 @@ contract Poseidon2Test is Test {
         uint256[] memory inputs = new uint256[](1);
         inputs[0] = uint256(0x187b4757bbf034ce7daaf3fdf2b735544d88da2033dea124500ff79484bce862);
         assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x0961b57effa18e2dcbf5671e9400d10bc9214fbf39b149cfd8949731f61d2bfa, "testVarLen1 - yul incorrect");
-        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x0961b57effa18e2dcbf5671e9400d10bc9214fbf39b149cfd8949731f61d2bfa, "testVarLen1 - huff incorrect");
+        assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x0961b57effa18e2dcbf5671e9400d10bc9214fbf39b149cfd8949731f61d2bfa, "testVarLen1 - huff incorrect");
     }
 
     function _testVarLen2() internal view {
@@ -300,7 +300,7 @@ contract Poseidon2Test is Test {
         inputs[0] = uint256(0x0143bc5d854ca7c33c27ad96dfe2c2443dd272a30a99f90f8f892ac7bbb4370e);
         inputs[1] = uint256(0x2eb3d5587861dac05dfed4b7099dbdef57fc644504f297afb890c2df0c7212e7);
         assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x0d34db78174c82c6a7d60cbf21f0fce80ef4ddc67e65881d6daca4e5ad8cd52d, "testVarLen2 - yul incorrect");
-        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x0d34db78174c82c6a7d60cbf21f0fce80ef4ddc67e65881d6daca4e5ad8cd52d, "testVarLen2 - huff incorrect");
+        assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x0d34db78174c82c6a7d60cbf21f0fce80ef4ddc67e65881d6daca4e5ad8cd52d, "testVarLen2 - huff incorrect");
     }
 
     function _testVarLen3() internal view {
@@ -315,7 +315,7 @@ contract Poseidon2Test is Test {
         inputs[1] = uint256(0x00b88879f5765438ef691e40ad4a6223d421317c342888de56c7f8b995e27688);
         inputs[2] = uint256(0x0727b4522492cfbe1b5be97a17ed5672487fd1dc2ad3d09bd033c55d1ba40c70);
         assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x22024dabdd6a9dfb47eb26f9569fd048968a0db30c60f3f38d8b61274458437e, "testVarLen3 - yul incorrect");
-        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x22024dabdd6a9dfb47eb26f9569fd048968a0db30c60f3f38d8b61274458437e, "testVarLen3 - huff incorrect");
+        assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x22024dabdd6a9dfb47eb26f9569fd048968a0db30c60f3f38d8b61274458437e, "testVarLen3 - huff incorrect");
     }
 
     function _testVarLen4() internal view {
@@ -332,7 +332,7 @@ contract Poseidon2Test is Test {
         inputs[2] = uint256(0x03a2238b91de1214a385af17ade25f2e71b6364b4d54dfb6e7ec96fd12be5a65);
         inputs[3] = uint256(0x24cc93df58f07c156dd648edac3318420325db58ff1cccbc3d9a3cdb529f8469);
         assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x24f3009e0089df4ae82f5dcde988fd9738ede4a6f51788c11c69b3e43a01b42b, "testVarLen4 - yul incorrect");
-        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x24f3009e0089df4ae82f5dcde988fd9738ede4a6f51788c11c69b3e43a01b42b, "testVarLen4 - huff incorrect");
+        assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x24f3009e0089df4ae82f5dcde988fd9738ede4a6f51788c11c69b3e43a01b42b, "testVarLen4 - huff incorrect");
     }
 
     function _testVarLen5() internal view {
@@ -351,7 +351,7 @@ contract Poseidon2Test is Test {
         inputs[3] = uint256(0x18f1ec5070a8f50dbb71bf03d130fccc420161b8ee5e6c6ffdb676c7a7d33189);
         inputs[4] = uint256(0x11e539f3dd6bb505dde162c84f22eee58f2a95a62027f230442b26c8dc3f96fc);
         assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x1cbfcd7746c46fcfa7ae67d32e0cafb6ac348ebcb6f5a5e8c579ec6daa96362b, "testVarLen5 - yul incorrect");
-        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x1cbfcd7746c46fcfa7ae67d32e0cafb6ac348ebcb6f5a5e8c579ec6daa96362b, "testVarLen5 - huff incorrect");
+        assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x1cbfcd7746c46fcfa7ae67d32e0cafb6ac348ebcb6f5a5e8c579ec6daa96362b, "testVarLen5 - huff incorrect");
     }
 
     function _testVarLen6() internal view {
@@ -372,7 +372,7 @@ contract Poseidon2Test is Test {
         inputs[4] = uint256(0x065929de60742283ec95df48428ca27e72bc8d4d114f172aff17c237b208d056);
         inputs[5] = uint256(0x23ceb931dc1b76a8915466e0faedf56a5fe2169e650248663d9fecb75e5fa156);
         assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x145023e2318ab81ba31e50cc62713441762c5132d5e6acbe6e88fd9f816473f1, "testVarLen6 - yul incorrect");
-        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x145023e2318ab81ba31e50cc62713441762c5132d5e6acbe6e88fd9f816473f1, "testVarLen6 - huff incorrect");
+        assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x145023e2318ab81ba31e50cc62713441762c5132d5e6acbe6e88fd9f816473f1, "testVarLen6 - huff incorrect");
     }
 
     function _testVarLen7() internal view {
@@ -395,7 +395,7 @@ contract Poseidon2Test is Test {
         inputs[5] = uint256(0x0044d022f6220947659be7ed057a37adebc8468fce1bc365b76b7664595dd31d);
         inputs[6] = uint256(0x22a2c8eff174ea66dee3d53dda9d45d37b90b3c2d6820f233fb868f4b41fc83c);
         assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x16f71f10bf199529eadbbf20b0aefd1aae7afdd756c385da64d4e74474b9623c, "testVarLen7 - yul incorrect");
-        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x16f71f10bf199529eadbbf20b0aefd1aae7afdd756c385da64d4e74474b9623c, "testVarLen7 - huff incorrect");
+        assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x16f71f10bf199529eadbbf20b0aefd1aae7afdd756c385da64d4e74474b9623c, "testVarLen7 - huff incorrect");
     }
 
     function _testVarLen8() internal view {
@@ -420,7 +420,7 @@ contract Poseidon2Test is Test {
         inputs[6] = uint256(0x1bda12ff5af5e9a1b1f7dd8febb87e253ca0a4e43b16cd3b79818007f6f8d1bb);
         inputs[7] = uint256(0x24a873345d569136d18164069fc60749aa57f8930ec8a52adde1f01967afbb7c);
         assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x1b63be96f9b6bdeb09f103968aabac69252137ec863177a93a516e8120d662c4, "testVarLen8 - yul incorrect");
-        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x1b63be96f9b6bdeb09f103968aabac69252137ec863177a93a516e8120d662c4, "testVarLen8 - huff incorrect");
+        assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x1b63be96f9b6bdeb09f103968aabac69252137ec863177a93a516e8120d662c4, "testVarLen8 - huff incorrect");
     }
 
     function _testVarLen9() internal view {
@@ -447,7 +447,7 @@ contract Poseidon2Test is Test {
         inputs[7] = uint256(0x18de646adb3e2f5e2ac7cd21dbfbf9dbe91d97b9cfb5afc2e7735c6f292d4ffe);
         inputs[8] = uint256(0x174bfedb2323aecff5c4952313b81d9b3fcda8ff71a4b762bd16bb9779afb731);
         assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x2a33a41e1e3cca17e7b7a000ac5cfcb7f7783023c0563acb39ae5bfe2e0d3c8e, "testVarLen9 - yul incorrect");
-        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x2a33a41e1e3cca17e7b7a000ac5cfcb7f7783023c0563acb39ae5bfe2e0d3c8e, "testVarLen9 - huff incorrect");
+        assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x2a33a41e1e3cca17e7b7a000ac5cfcb7f7783023c0563acb39ae5bfe2e0d3c8e, "testVarLen9 - huff incorrect");
     }
 
     function _testVarLen10() internal view {
@@ -476,7 +476,7 @@ contract Poseidon2Test is Test {
         inputs[8] = uint256(0x23cf8f1eda161dc7114e4774216a96a51430a4ed00bb94a9c22ffaf8158d9331);
         inputs[9] = uint256(0x2060c8e16eaa344a1eb20bbc4179ad36c6c3d503716f329ce268677ecb76172f);
         assertEq(_hashVarLen(address(poseidon2Yul), inputs), 0x1eab26c4915afff7148c904edac0220dc6b86dca67ee342db5705027c4e489f1, "testVarLen10 - yul incorrect");
-        // assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x1eab26c4915afff7148c904edac0220dc6b86dca67ee342db5705027c4e489f1, "testVarLen10 - huff incorrect");
+        assertEq(_hashVarLen(address(poseidon2Huff), inputs), 0x1eab26c4915afff7148c904edac0220dc6b86dca67ee342db5705027c4e489f1, "testVarLen10 - huff incorrect");
     }
 
     // ============================================================

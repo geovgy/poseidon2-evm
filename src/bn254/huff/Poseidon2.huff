@@ -2,6 +2,7 @@
 
 // Function selectors
 #define constant SELECTOR_PERMUTE = 0xda5fb280
+#define constant SELECTOR_HASH_ARRAY = 0x40ec6e49
 
 // Memory layout
 // - 0x00..0x84: call/return buffer for self-permute staticcall
@@ -19,10 +20,15 @@
     0xe0 shr
 
     dup1 [SELECTOR_PERMUTE] eq do_permute jumpi
+    dup1 [SELECTOR_HASH_ARRAY] eq do_hash_array jumpi
 
     // default: packed args after selector
     pop
     HASH_PACKED()
+
+    do_hash_array:
+    pop
+    HASH_ARRAY()
 
     do_permute:
     pop
@@ -169,6 +175,117 @@
     jumpdest
 
     finish:
+    0xa0 mload
+    RETURN_ONE()
+}
+
+// ABI-aware hash(uint256[])
+// calldata layout: [selector][offset=0x20][len][elem0][elem1]...
+#define macro HASH_ARRAY() = takes (0) returns (0) {
+    // Read array offset (relative to args start at 0x04)
+    0x04 calldataload              // [arrOff]
+    0x04 add                       // [arrHead]
+
+    // len = calldataload(arrHead)
+    dup1 calldataload              // [len, arrHead]
+    dup1 0x160 mstore              // original n
+    dup1 0x140 mstore              // remaining
+
+    // iv = len << 64
+    0x40 shl
+    0x100 mstore
+
+    // state0..2 = 0
+    0x00 0xa0 mstore
+    0x00 0xc0 mstore
+    0x00 0xe0 mstore
+
+    // data offset = arrHead + 0x20 (skip length word)
+    0x20 add
+    0x120 mstore
+
+    loop_full_arr:
+    0x140 mload
+    0x03 dup2 lt
+    end_full_arr jumpi
+    pop
+
+    0x120 mload
+
+    // state0 += elem0
+    dup1 calldataload
+    [PRIME]
+    0xa0 mload
+    swap1 swap2 swap1 addmod
+    0xa0 mstore
+
+    // state1 += elem1
+    dup1 0x20 add calldataload
+    [PRIME]
+    0xc0 mload
+    swap1 swap2 swap1 addmod
+    0xc0 mstore
+
+    // state2 += elem2
+    0x40 add calldataload
+    [PRIME]
+    0xe0 mload
+    swap1 swap2 swap1 addmod
+    0xe0 mstore
+
+    // offset += 0x60
+    0x120 mload 0x60 add 0x120 mstore
+    // remaining -= 3
+    0x140 mload 0x03 swap1 sub 0x140 mstore
+
+    PERMUTE_SELF()
+    loop_full_arr jump
+
+    end_full_arr:
+    pop
+
+    // rem = mload(0x140)
+    0x140 mload
+    dup1 iszero
+    rem_is_zero_arr jumpi
+    pop
+
+    // remainder (1 or 2)
+    0x120 mload
+
+    // state0 += elem0
+    dup1 calldataload
+    [PRIME]
+    0xa0 mload
+    swap1 swap2 swap1 addmod
+    0xa0 mstore
+
+    // if rem == 1, skip second
+    0x140 mload 0x01 eq
+    rem_done_arr jumpi
+
+    // state1 += elem1
+    0x20 add calldataload
+    [PRIME]
+    0xc0 mload
+    swap1 swap2 swap1 addmod
+    0xc0 mstore
+
+    rem_done_arr:
+    PERMUTE_SELF()
+    finish_arr jump
+
+    rem_is_zero_arr:
+    pop
+    // if original n == 0, still permute once (hash of empty input)
+    0x160 mload
+    no_final_permute_arr jumpi
+    PERMUTE_SELF()
+
+    no_final_permute_arr:
+    jumpdest
+
+    finish_arr:
     0xa0 mload
     RETURN_ONE()
 }
